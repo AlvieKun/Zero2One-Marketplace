@@ -17,8 +17,6 @@ const sample = [
   { id: 10, ticker: 'UBER', company: 'Uber Technologies', price: '$39.88', change: -0.05 }
 ]
 
-import useWindowDragScroll from './hooks/useWindowDragScroll'
-
 export default function App() {
   const [activeSector, setActiveSector] = React.useState(0)
   const [isSwitching, setIsSwitching] = React.useState(false)
@@ -42,11 +40,10 @@ export default function App() {
       }, 340)
     }, 180)
   }
-  // enable mouse drag-to-scroll for desktop; mobile keeps native touch scrolling
-  useWindowDragScroll()
+  // page scrolling disabled; card wheel handles all drag/scroll interactions
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 relative">
+    <div className="min-h-screen flex items-center justify-center px-6 relative overflow-hidden">
       {/* global full-bleed background blobs (single environment for all sectors) */}
       <div className="absolute inset-0 pointer-events-none -z-10">
         <div className="blob blob-1" />

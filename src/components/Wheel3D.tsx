@@ -75,8 +75,8 @@ export default function Wheel3D({ items, resetSignal }: { items: Item[]; resetSi
     }
 
     const onPointerDown = (e: PointerEvent) => {
-      // ignore touch so mobile keeps native touch scrolling
-      if ((e as any).pointerType === 'touch') return
+      // handle mouse and touch; prevent default so touch doesn't scroll the page
+      try { e.preventDefault() } catch {}
 
       lastY = e.clientY
       isDown = true
@@ -86,8 +86,12 @@ export default function Wheel3D({ items, resetSignal }: { items: Item[]; resetSi
     }
     const onPointerMove = (e: PointerEvent) => {
       if (!isDown) return
+      try { e.preventDefault() } catch {}
       // drag to scroll; dampen the drag effect
-      const dy = (e.clientY - lastY) / 60
+      // use slightly different sensitivity for touch vs mouse
+      const isTouch = (e as any).pointerType === 'touch'
+      const sensitivity = isTouch ? 48 : 60
+      const dy = (e.clientY - lastY) / sensitivity
       lastY = e.clientY
       targetRef.current = clamp(targetRef.current - dy, 0, items.length - 1)
       // debounce snap while dragging
@@ -104,9 +108,13 @@ export default function Wheel3D({ items, resetSignal }: { items: Item[]; resetSi
     }
     const onPointerCancel = () => {
       isDown = false
+      document.documentElement.style.cursor = ''
+      document.documentElement.style.userSelect = ''
       targetRef.current = Math.round(targetRef.current)
     }
 
+    // disable default touch-action on container so pointer events are fully handled
+    try { (el as HTMLElement).style.touchAction = 'none' } catch {}
     el.addEventListener('wheel', onWheel, { passive: false })
     el.addEventListener('pointerdown', onPointerDown)
     window.addEventListener('pointermove', onPointerMove)
@@ -119,6 +127,7 @@ export default function Wheel3D({ items, resetSignal }: { items: Item[]; resetSi
       window.removeEventListener('pointermove', onPointerMove)
       window.removeEventListener('pointerup', onPointerUp)
       window.removeEventListener('pointercancel', onPointerCancel)
+      try { (el as HTMLElement).style.touchAction = '' } catch {}
       if (wheelTimeout) clearTimeout(wheelTimeout)
     }
   }, [items.length])
