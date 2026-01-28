@@ -75,9 +75,14 @@ export default function Wheel3D({ items, resetSignal }: { items: Item[]; resetSi
     }
 
     const onPointerDown = (e: PointerEvent) => {
+      // ignore touch so mobile keeps native touch scrolling
+      if ((e as any).pointerType === 'touch') return
+
       lastY = e.clientY
       isDown = true
-      (e.target as Element).setPointerCapture?.((e as any).pointerId)
+      try { (e.target as Element).setPointerCapture?.((e as any).pointerId) } catch (err) {}
+      document.documentElement.style.cursor = 'grabbing'
+      document.documentElement.style.userSelect = 'none'
     }
     const onPointerMove = (e: PointerEvent) => {
       if (!isDown) return
@@ -92,6 +97,8 @@ export default function Wheel3D({ items, resetSignal }: { items: Item[]; resetSi
     const onPointerUp = (e: PointerEvent) => {
       isDown = false
       try { (e.target as Element).releasePointerCapture?.((e as any).pointerId) } catch (err) {}
+      document.documentElement.style.cursor = ''
+      document.documentElement.style.userSelect = ''
       // snap to nearest card when pointer release
       targetRef.current = Math.round(targetRef.current)
     }
